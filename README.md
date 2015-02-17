@@ -1,2 +1,2 @@
 # sym_hk
-## A better was expected ;-)
+## A better name was expected ;-)

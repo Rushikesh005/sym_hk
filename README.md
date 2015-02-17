@@ -1,2 +1,9 @@
 # sym_hk
-## A better name was expected ;-)
+
+Get started with:
+
+```
+python manage.py makemigrations
+python manage.py migrate
+python manage.py runserver
+```

@@ -5,6 +5,10 @@ import httplib
 import base64
 import json
 import ast
+import pprint
+import constants
+
+### UTILS ###
 
 def authenticate():
     '''
@@ -12,8 +16,8 @@ def authenticate():
     pre-defined. Returns the header if succesful else
     exits.
     '''
-    CONSUMER_KEY='tI0bUJuctVgzA82wGYLiQ'
-    CONSUMER_SECRET='59GVWA6j7RJt1Ntw2cFi57FS91jzRFIk6lbNzH8Cs8'
+    CONSUMER_KEY=constants.CONSUMER_KEY
+    CONSUMER_SECRET=constants.CONSUMER_SECRET
 
     enc_str= base64.b64encode(CONSUMER_KEY+":"+CONSUMER_SECRET)
 
@@ -38,38 +42,116 @@ def authenticate():
 
     return get_headers
 
+
+def get_tweets_from_json(json_data):
+    """
+    Takes a list
+    and returns a list of tweet objects
+    """
+    tweets = list()
+    list_of_tweets = json.loads(json_data)
+
+    for t in list_of_tweets:
+        tweets.append(tweet(t))
+
+    return tweets
+
+##################################### END UTILS ########################################
+
+
 class twitter():
+
     def __init__(self, screename, conn=None):
-        '''
+        """
         Expects the screen_name for which, the tweets will
         be fetched.
-        '''
+        """
         self._screename = screename
         self._conn = conn
 
     def _set_conn(self):
+        """
+        Sets the HTTP Connection with twitter api end point.
+        Close the connection, when usage is done
+        """
         self._conn = httplib.HTTPSConnection("api.twitter.com")
         return self._conn
 
+    def _close_conn():
+        if conn:
+            self._conn.close()
+
     def _fetch_tweets(self,authentication_token, counts):
+        """
+        Fetches <count> no. of tweets.
+        Loads it into json and returns the json object.
+        """
         try:
-            print authentication_token
             api_url = "/1.1/statuses/user_timeline.json?screen_name=%s&count=%s"
-            print api_url % (self._screename, counts)
             request = self._conn.request("GET", api_url % (self._screename, counts),
                                          "", authentication_token)
 
             response = self._conn.getresponse()
             data_received = response.read()
 
-            print data_received
+            return data_received
 
         except:
             print "Some error occurred..."
 
+
+class tweet():
+    def __init__(self, json_data):
+        """
+        Initialize the object with the tweet data(json)
+        """
+        self._tweet = json_data
+
+    def _get_user(self):
+        """
+        Returns a dict with user details.
+        Eg followers, location, screen_name etc
+        """
+        return self._tweet['user']
+
+    def _get_screen_name(self):
+        """
+        Method to give the screen name for the tweet
+        """
+        user = self._get_user()
+        return user['screen_name']
+
+    def _get_location(self):
+        """
+        Returns location of the user
+        """
+        return self._get_user()['location']
+
+    def _get_retweets(self):
+        """
+        Gives the count of retweets
+        """
+        return int(self._tweet['retweet_count'])
+
+    def _get_tweet(self):
+        """
+        Gives the tweet. Could be a link or text
+        """
+        return self._tweet['text']
+
+
+
 # Test
 if __name__ == "__main__":
+    # use authenticate to get the token
     token = authenticate()
+    # create a twitter obj with screen_name
     tc = twitter("symantec")
     tc._set_conn()
-    tc._fetch_tweets(token, 5)
+    # Use the auth token and no of counts of tweets
+    # for the screen_name(symantec)
+    tweets = get_tweets_from_json(tc._fetch_tweets(token, 3))
+
+    for t in tweets:
+        print t._get_screen_name(), t._get_location(), t._get_tweet(), t._get_retweets()
+        print "----------------------------------"

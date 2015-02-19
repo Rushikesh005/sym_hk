@@ -99,7 +99,10 @@ class twitter():
         except:
             print "Some error occurred..."
 
-
+# add all the attributes as properties
+# will make it more efficient
+# shouldn't calculate if things have
+# been calculated once
 class tweet():
     def __init__(self, json_data):
         """
@@ -139,7 +142,29 @@ class tweet():
         """
         return self._tweet['text']
 
+    def _get_urls(self):
+        """
+        Returns usable URLs (list o f URLs).
+        The URLS can be directly used by urllib etc
+        """
+        usable_urls = list()
+        urls = self._tweet['entities']['urls']
 
+        for url in urls:
+            usable_url = url['expanded_url']
+            usable_url = usable_url.replace(" ","") # trimming
+            usable_urls.append(usable_url)
+
+        return usable_urls
+
+    def _print_details(self):
+        """
+        Print the properties(not yet props)
+        """
+        print "Screen Name: " + self._get_screen_name()
+        print "Tweet: " + self._get_tweet()
+        print "Retweets: " + str(self._get_retweets())
+        print "URLs: " + ", ".join(self._get_urls())
 
 # Test
 if __name__ == "__main__":
@@ -153,5 +178,5 @@ if __name__ == "__main__":
     tweets = get_tweets_from_json(tc._fetch_tweets(token, 3))
 
     for t in tweets:
-        print t._get_screen_name(), t._get_location(), t._get_tweet(), t._get_retweets()
+        t._print_details()
         print "----------------------------------"
